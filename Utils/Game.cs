@@ -12,6 +12,7 @@ namespace Utils
         Yakuza5,
 
         // Old Engine
+        BinaryDomain,
         Yakuza0,
         YakuzaKiwami,
 

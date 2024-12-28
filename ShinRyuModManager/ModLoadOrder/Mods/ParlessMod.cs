@@ -32,7 +32,7 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
         /// </summary>
         /// <param name="path"></param>
         /// <param name="check"></param>
-        public new void AddFiles(string path, string check)
+        public new void AddFiles(Game game, string path, string check)
         {
             if (string.IsNullOrEmpty(check))
             {
@@ -44,14 +44,14 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
             if (index != -1)
             {
                 // Call the base class AddFiles method
-                base.AddFiles(path, check);
+                base.AddFiles(game, path, check);
 
                 // Remove ".parless" from the path
                 path = path.Remove(index, 8);
 
                 // Add .parless folders to the list to make it easier to check for them in the ASI
-                string loosePath = GamePath.RemoveParlessPath(path);
-                this.ParlessFolders.Add((loosePath, index - GamePath.GetDataPath().Length));
+                string loosePath = GamePath.RemoveParlessPath(game, path);
+                this.ParlessFolders.Add((loosePath, index - GamePath.GetDataPath(game).Length));
 
                 this.console.WriteLineIfVerbose($"Adding .parless path: {loosePath}");
             }
@@ -60,7 +60,7 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
                 // Continue recursing until we find the next ".parless"
                 foreach (string folder in Directory.GetDirectories(path))
                 {
-                    this.AddFiles(folder, check);
+                    this.AddFiles(game, folder, check);
                 }
             }
         }

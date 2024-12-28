@@ -10,7 +10,7 @@ namespace ShinRyuModManager.CPKRepatcher
     internal static class CPKPatcher
     {
 
-        public static async Task RepackDictionary(Dictionary<string, List<string>> cpkDict)
+        public static async Task RepackDictionary(Game game, Dictionary<string, List<string>> cpkDict)
         {
             if (cpkDict == null || cpkDict.Count <= 0)
                 return;
@@ -25,7 +25,7 @@ namespace ShinRyuModManager.CPKRepatcher
             foreach(var kv in cpkDict)
             {
                 string cpkDir = cpkPath + kv.Key;
-                string origCpk = GamePath.GetDataPath() + kv.Key + ".cpk";
+                string origCpk = GamePath.GetDataPath(game) + kv.Key + ".cpk";
 
                 if (!Directory.Exists(cpkDir))
                     Directory.CreateDirectory(cpkDir);

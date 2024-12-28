@@ -73,7 +73,7 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
             this.console.Flush();
         }
 
-        public void AddFiles(string path, string check)
+        public void AddFiles(Game game, string path, string check)
         {
             bool needsRepack = false;
             string basename = GamePath.GetBasename(path);
@@ -82,34 +82,34 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
             switch (check)
             {
                 case "chara":
-                    needsRepack = GamePath.ExistsInDataAsPar(path);
+                    needsRepack = GamePath.ExistsInDataAsPar(game, path);
                     break;
                 case "map_":
-                    needsRepack = GamePath.ExistsInDataAsPar(path);
+                    needsRepack = GamePath.ExistsInDataAsPar(game, path);
                     break;
                 case "effect":
-                    needsRepack = GamePath.ExistsInDataAsPar(path);
+                    needsRepack = GamePath.ExistsInDataAsPar(game, path);
                     break;
                 case "prep":
-                    needsRepack = GamePath.GetGame() < Game.Yakuza0 && GamePath.ExistsInDataAsPar(path);
+                    needsRepack = GamePath.GetGame() < Game.Yakuza0 && GamePath.ExistsInDataAsPar(game, path);
                     break;
                 case "light_anim":
-                    needsRepack = GamePath.GetGame() < Game.Yakuza0 && GamePath.ExistsInDataAsPar(path);
+                    needsRepack = GamePath.GetGame() < Game.Yakuza0 && GamePath.ExistsInDataAsPar(game, path);
                     break;
                 case "2d":
-                    needsRepack = (basename.StartsWith("sprite") || basename.StartsWith("pj")) && GamePath.ExistsInDataAsParNested(path);
+                    needsRepack = (basename.StartsWith("sprite") || basename.StartsWith("pj")) && GamePath.ExistsInDataAsParNested(game, path);
                     break;
                 case "cse":
-                    needsRepack = (basename.StartsWith("sprite") || basename.StartsWith("pj")) && GamePath.ExistsInDataAsParNested(path);
+                    needsRepack = (basename.StartsWith("sprite") || basename.StartsWith("pj")) && GamePath.ExistsInDataAsParNested(game, path);
                     break;
                 case "pausepar":
                     if (GamePath.GetGame() >= Game.Yakuza0)
                         needsRepack = true;
                     else
-                        needsRepack = !basename.StartsWith("pause") && GamePath.ExistsInDataAsPar(path);
+                        needsRepack = !basename.StartsWith("pause") && GamePath.ExistsInDataAsPar(game, path);
                     break;
                 case "pausepar_e":
-                    needsRepack = !basename.StartsWith("pause") && GamePath.ExistsInDataAsPar(path);
+                    needsRepack = !basename.StartsWith("pause") && GamePath.ExistsInDataAsPar(game, path);
                     break;
                 case "particle":
                     if (GamePath.GetGame() >= Game.Yakuza6 && basename == "arc")
@@ -121,14 +121,14 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
                         needsRepack = true;
                     break;
                 case "particle/arc":
-                    needsRepack = GamePath.ExistsInDataAsParNested(path);
+                    needsRepack = GamePath.ExistsInDataAsParNested(game, path);
                     break;
                 case "stage":
-                    needsRepack = GamePath.GetGame() == Game.eve && basename == "sct" && GamePath.ExistsInDataAsParNested(path);
+                    needsRepack = GamePath.GetGame() == Game.eve && basename == "sct" && GamePath.ExistsInDataAsParNested(game, path);
                     break;
                 case "":
-                    needsRepack = (basename == "ptc" && GamePath.ExistsInDataAsParNested(path))
-                        || (basename == "entity_adam" && GamePath.ExistsInDataAsPar(path));
+                    needsRepack = (basename == "ptc" && GamePath.ExistsInDataAsParNested(game, path))
+                        || (basename == "entity_adam" && GamePath.ExistsInDataAsPar(game, path));
 
                     if (!needsRepack)
                     {
@@ -144,13 +144,13 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
             switch (basename)
             {
                 case "bgm":
-                    cpkDataPath = GamePath.RemoveModPath(path);
+                    cpkDataPath = GamePath.RemoveModPath(game, path);
                     this.RepackCPKs.Add(cpkDataPath);
                     break;
 
                 case "se":
                 case "speech":
-                    cpkDataPath = GamePath.RemoveModPath(path);
+                    cpkDataPath = GamePath.RemoveModPath(game, path);
                     if (GamePath.GetGame() == Game.Yakuza5)
                     {
                         this.CpkFolders.Add(cpkDataPath + ".cpk");
@@ -169,7 +169,7 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
                 case "movie":
                 case "moviesd":
                 case "moviesd_dlc":
-                    cpkDataPath = GamePath.RemoveModPath(path);
+                    cpkDataPath = GamePath.RemoveModPath(game, path);
                     if (GamePath.GetGame() == Game.Judgment || GamePath.GetGame() == Game.LostJudgment)
                     {
                         this.CpkFolders.Add(cpkDataPath + ".par");
@@ -183,7 +183,7 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
 
             if (needsRepack)
             {
-                string dataPath = GamePath.GetDataPathFrom(path);
+                string dataPath = GamePath.GetDataPathFrom(game, path);
 
                 // Add this folder to the list of folders to be repacked and stop recursing
                 this.ParFolders.Add(dataPath);
@@ -192,7 +192,7 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
             else
             {
                 // Add files in current directory
-                foreach (string p in Directory.GetFiles(path).Where(f => !f.EndsWith(Constants.VORTEX_MANAGED_FILE)).Select(f => GamePath.GetDataPathFrom(f)))
+                foreach (string p in Directory.GetFiles(path).Where(f => !f.EndsWith(Constants.VORTEX_MANAGED_FILE)).Select(f => GamePath.GetDataPathFrom(game, f)))
                 {
                     this.Files.Add(p);
                     this.console.WriteLineIfVerbose($"Adding file: {p}");
@@ -204,11 +204,11 @@ namespace ShinRyuModManager.ModLoadOrder.Mods
                     // Break an important rule in the concept of inheritance to make the program function correctly
                     if (this.GetType() == typeof(ParlessMod))
                     {
-                        ((ParlessMod)this).AddFiles(folder, check);
+                        ((ParlessMod)this).AddFiles(game, folder, check);
                     }
                     else
                     {
-                        this.AddFiles(folder, check);
+                        this.AddFiles(game, folder, check);
                     }
                 }
             }

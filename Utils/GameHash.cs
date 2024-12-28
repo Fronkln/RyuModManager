@@ -8,7 +8,7 @@ namespace Utils
 {
     public class GameHash
     {
-        public static bool ValidateFile(string path, Game game)
+        public static bool ValidateFile(Game game, string path)
         {
             try
             {
@@ -46,6 +46,11 @@ namespace Utils
             {
                 default:
                     return new List<byte[]>();
+                case Game.BinaryDomain:
+                    return new List<byte[]>()
+                    {
+                        new byte[] { 227, 61, 15, 175, 105, 76, 232, 181, 93, 173, 15, 31, 54, 172, 246, 249 }, // Steam ver.
+                    };
                 case Game.Yakuza3:
                     return new List<byte[]>()
                     {

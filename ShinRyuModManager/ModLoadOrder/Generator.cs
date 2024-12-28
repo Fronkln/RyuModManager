@@ -30,7 +30,7 @@ namespace ShinRyuModManager.ModLoadOrder
 
             if (looseFilesEnabled)
             {
-                loose.AddFiles(GamePath.GetDataPath(), "");
+                loose.AddFiles(game, GamePath.GetDataPath(game), string.Empty);
 
                 loose.PrintInfo();
 
@@ -66,7 +66,7 @@ namespace ShinRyuModManager.ModLoadOrder
             {
                 mod = new Mod(mods[i]);
                 modPath = Path.Combine(GamePath.GetModsPath(), mods[i]);
-                mod.AddFiles(modPath, "");
+                mod.AddFiles(game, modPath, string.Empty);
 
                 mod.PrintInfo();
 
@@ -111,7 +111,7 @@ namespace ShinRyuModManager.ModLoadOrder
                 foreach (string subPath in Directory.GetDirectories(modPath))
                 {
                     subPathName = new DirectoryInfo(subPath).Name;
-                    if (!(GamePath.DirectoryExistsInData(subPathName) || GamePath.FileExistsInData(subPathName + ".par")))
+                    if (!(GamePath.DirectoryExistsInData(game, subPathName) || GamePath.FileExistsInData(game, subPathName + ".par")))
                     {
                         foldersNotFound.Add(subPathName);
                     }
@@ -172,10 +172,10 @@ namespace ShinRyuModManager.ModLoadOrder
             }
 
             // Repack pars
-            await ParRepacker.RepackDictionary(parDictionary).ConfigureAwait(false);
+            await ParRepacker.RepackDictionary(game, parDictionary).ConfigureAwait(false);
 
             if(cpkRepackingEnabled)
-                await CPKPatcher.RepackDictionary(cpkRepackDict).ConfigureAwait(false);
+                await CPKPatcher.RepackDictionary(game, cpkRepackDict).ConfigureAwait(false);
 
             if (ConsoleOutput.ShowWarnings)
             {

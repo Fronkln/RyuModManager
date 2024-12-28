@@ -54,7 +54,7 @@ namespace ShinRyuModManager
             }
         }
 
-        public static async Task RepackDictionary(Dictionary<string, List<string>> parDictionary)
+        public static async Task RepackDictionary(Game game, Dictionary<string, List<string>> parDictionary)
         {
             var parTasks = new List<Task<ConsoleOutput>>();
 
@@ -72,7 +72,7 @@ namespace ShinRyuModManager
                 foreach (KeyValuePair<string, List<string>> parModPair in parDictionary)
                 {
                     ConsoleOutput consoleOutput = new ConsoleOutput(2);
-                    parTasks.Add(Task.Run(() => RepackPar(parModPair.Key, parModPair.Value, consoleOutput)));
+                    parTasks.Add(Task.Run(() => RepackPar(game, parModPair.Key, parModPair.Value, consoleOutput)));
                 }
 
                 while (parTasks.Count > 0)
@@ -91,12 +91,12 @@ namespace ShinRyuModManager
             }
         }
 
-        private static ConsoleOutput RepackPar(string parPath, List<string> mods, ConsoleOutput console)
+        private static ConsoleOutput RepackPar(Game game, string parPath, List<string> mods, ConsoleOutput console)
         {
             parPath = parPath.TrimStart(Path.DirectorySeparatorChar);
-            string parPathReal = GamePath.GetRootParPath(parPath + ".par");
+            string parPathReal = GamePath.GetRootParPath(game, parPath + ".par");
 
-            string pathToPar = Path.Combine(GamePath.GetDataPath(), parPathReal);
+            string pathToPar = Path.Combine(GamePath.GetDataPath(game), parPathReal);
             string pathToModPar = Path.Combine(GamePath.GetModsPath(), "Parless", parPath + ".par");
 
             // Check if actual repackable par is nested
@@ -122,7 +122,7 @@ namespace ShinRyuModManager
             // Populate fileDict with the files inside each mod
             foreach (string mod in mods)
             {
-                foreach (string modFile in GetModFiles(parPath, mod, console))
+                foreach (string modFile in GetModFiles(game, parPath, mod, console))
                 {
                     if (!fileDict.ContainsKey(modFile))
                     {
@@ -159,7 +159,7 @@ namespace ShinRyuModManager
                 if (fileModPair.Value.StartsWith(Constants.PARLESS_NAME))
                 {
                     // 15 = ParlessMod.NAME.Length + 1
-                    fileInModFolder = Path.Combine(GamePath.GetDataPath(), parPath.Insert(int.Parse(fileModPair.Value.Substring(15)) - 1, ".parless"), fileModPair.Key);
+                    fileInModFolder = Path.Combine(GamePath.GetDataPath(game), parPath.Insert(int.Parse(fileModPair.Value.Substring(15)) - 1, ".parless"), fileModPair.Key);
                 }
                 else
                 {
@@ -240,30 +240,30 @@ namespace ShinRyuModManager
             return console;
         }
 
-        public static List<string> GetModFiles(string par, string mod, ConsoleOutput console)
+        public static List<string> GetModFiles(Game game, string par, string mod, ConsoleOutput console)
         {
             List<string> result;
             if (mod.StartsWith(Constants.PARLESS_NAME))
             {
                 // Get index of ".parless" in par path
                 // 15 = ParlessMod.NAME.Length + 1
-                result = GetModFiles(Path.Combine(GamePath.GetDataPath(), par.Insert(int.Parse(mod.Substring(15)) - 1, ".parless")), console);
+                result = GetModFiles(game, Path.Combine(GamePath.GetDataPath(game), par.Insert(int.Parse(mod.Substring(15)) - 1, ".parless")), console);
             }
             else
             {
-                result = GetModFiles(GamePath.GetModPathFromDataPath(mod, par), console);
+                result = GetModFiles(game, GamePath.GetModPathFromDataPath(mod, par), console);
             }
 
             // Get file path relative to par
             return result.Select(f => f.Replace(".parless", "").Substring(f.Replace(".parless", "").IndexOf(par) + par.Length + 1)).ToList();
         }
 
-        private static List<string> GetModFiles(string path, ConsoleOutput console)
+        private static List<string> GetModFiles(Game game, string path, ConsoleOutput console)
         {
             List<string> files = new List<string>();
 
             // Add files in current directory
-            foreach (string p in Directory.GetFiles(path).Where(f => !f.EndsWith(Constants.VORTEX_MANAGED_FILE)).Select(f => GamePath.GetDataPathFrom(f)))
+            foreach (string p in Directory.GetFiles(path).Where(f => !f.EndsWith(Constants.VORTEX_MANAGED_FILE)).Select(f => GamePath.GetDataPathFrom(game, f)))
             {
                 files.Add(p);
                 console.WriteLineIfVerbose($"Adding file: {p}");
@@ -272,7 +272,7 @@ namespace ShinRyuModManager
             // Get files for all subdirectories
             foreach (string folder in Directory.GetDirectories(path))
             {
-                files.AddRange(GetModFiles(folder, console));
+                files.AddRange(GetModFiles(game, folder, console));
             }
 
             return files;

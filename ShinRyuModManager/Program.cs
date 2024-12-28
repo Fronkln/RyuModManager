@@ -581,7 +581,7 @@ namespace ShinRyuModManager
 
         public static bool MissingDLL()
         {
-            return !(File.Exists(DINPUT8DLL) || File.Exists(VERSIONDLL) || File.Exists(WINMMDLL));
+            return !(File.Exists(DINPUT8DLL) || File.Exists(VERSIONDLL) || File.Exists(D3D9DLL) || File.Exists(WINMMDLL));
         }
 
 

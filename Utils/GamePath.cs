@@ -25,9 +25,12 @@ namespace Utils
             return Directory.GetCurrentDirectory();
         }
 
-        public static string GetDataPath()
+        public static string GetDataPath(Game game)
         {
-            return Path.Combine(GetGamePath(), DATA);
+            if (game == Game.BinaryDomain)
+                return GetGamePath();
+            else
+                return Path.Combine(GetGamePath(), DATA);
         }
 
         public static string GetModsPath()
@@ -50,27 +53,31 @@ namespace Utils
         /// </summary>
         /// <param name="path"></param>
         /// <returns>Given path but starting after /mods/ModName/ </returns>
-        public static string RemoveModPath(string path)
+        public static string RemoveModPath(Game game, string path)
         {
             return path.Substring(path.IndexOf(Path.DirectorySeparatorChar, path.IndexOf("mods" + Path.DirectorySeparatorChar) + 5));
         }
 
-        public static string RemoveParlessPath(string path)
+        public static string RemoveParlessPath(Game game, string path)
         {
+            string data = game == Game.BinaryDomain ? string.Empty : DATA;
+
             path = path.Replace(".parless", "");
 
-            return path.Substring(path.IndexOf("data" + Path.DirectorySeparatorChar) + 4);
+            return path.Substring(path.IndexOf(data + Path.DirectorySeparatorChar) + 4);
         }
 
-        public static string GetDataPathFrom(string path)
+        public static string GetDataPathFrom(Game game, string path)
         {
+            string data = game == Game.BinaryDomain ? string.Empty : DATA;
+
             if (path.Contains(".parless"))
             {
                 // Preserve .parless in path instead of removing it
-                return path.Substring(path.IndexOf("data" + Path.DirectorySeparatorChar) + 4);
+                return path.Substring(path.IndexOf(data + Path.DirectorySeparatorChar) + 4);
             }
 
-            return RemoveModPath(path);
+            return RemoveModPath(game, path);
         }
 
         public static string GetModPathFromDataPath(string mod, string path)
@@ -78,53 +85,53 @@ namespace Utils
             return Path.Combine(GetModsPath(), mod, path.TrimStart(Path.DirectorySeparatorChar));
         }
 
-        public static bool FileExistsInData(string path)
+        public static bool FileExistsInData(Game game, string path)
         {
-            return File.Exists(Path.Combine(GetDataPath(), path.TrimStart(Path.DirectorySeparatorChar)));
+            return File.Exists(Path.Combine(GetDataPath(game), path.TrimStart(Path.DirectorySeparatorChar)));
         }
 
-        public static bool DirectoryExistsInData(string path)
+        public static bool DirectoryExistsInData(Game game, string path)
         {
-            return Directory.Exists(Path.Combine(GetDataPath(), path.TrimStart(Path.DirectorySeparatorChar)));
+            return Directory.Exists(Path.Combine(GetDataPath(game), path.TrimStart(Path.DirectorySeparatorChar)));
         }
 
-        public static string GetRootParPath(string path)
+        public static string GetRootParPath(Game game, string path)
         {
             if (!path.Contains(Path.DirectorySeparatorChar))
             {
-                return FileExistsInData(path) ? path : "";
+                return FileExistsInData(game, path) ? path : string.Empty;
             }
 
-            if (FileExistsInData(path))
+            if (FileExistsInData(game, path))
             {
                 return path;
             }
 
-            return GetRootParPath(path.Substring(0, path.LastIndexOf(Path.DirectorySeparatorChar)) + ".par");
+            return GetRootParPath(game, path.Substring(0, path.LastIndexOf(Path.DirectorySeparatorChar)) + ".par");
         }
 
-        public static bool ExistsInDataAsParNested(string path)
+        public static bool ExistsInDataAsParNested(Game game, string path)
         {
             if (path.Contains(".parless"))
             {
                 // Remove ".parless"
-                return GetRootParPath(RemoveParlessPath(path) + ".par") != "";
+                return GetRootParPath(game, RemoveParlessPath(game, path) + ".par") != string.Empty;
             }
 
             // Add ".par"
-            return GetRootParPath(RemoveModPath(path) + ".par") != "";
+            return GetRootParPath(game, RemoveModPath(game, path) + ".par") != string.Empty;
         }
 
-        public static bool ExistsInDataAsPar(string path)
+        public static bool ExistsInDataAsPar(Game game, string path)
         {
             if (path.Contains(".parless"))
             {
                 // Remove ".parless"
-                return FileExistsInData(RemoveParlessPath(path) + ".par");
+                return FileExistsInData(game, RemoveParlessPath(game, path) + ".par");
             }
 
             // Add ".par"
-            return FileExistsInData(RemoveModPath(path) + ".par");
+            return FileExistsInData(game, RemoveModPath(game, path) + ".par");
         }
 
         public static bool IsXbox(string path)
@@ -154,6 +161,7 @@ namespace Utils
         public static string GetGameFriendlyName(Game g) {
             return g switch
             {
+                Game.BinaryDomain => "Binary Domain",
                 Game.Yakuza3 => "Yakuza 3 Remastered",
                 Game.Yakuza4 => "Yakuza 4 Remastered",
                 Game.Yakuza5 => "Yakuza 5 Remastered",
